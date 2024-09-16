@@ -56,8 +56,10 @@ public class User
         PasswordHash = passwordHash.Trim();
     }
 
-    public IResult Validate()
+    public IResult<User> Validate()
     {
-        return _errors.Any() ? Result.Fail(_errors) : Result.Success();
+        return _errors.Any() 
+            ? Result<User>.Fail(_errors, this) 
+            : Result<User>.Success(this);
     }
 }

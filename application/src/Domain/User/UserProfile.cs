@@ -7,6 +7,7 @@ namespace Domain.User;
 
 public class UserProfile
 {
+    public Guid UserProfileId { get; set; }
     public Guid UserId { get; set; }
     public User User { get; set; }
     public string ProfileType { get; set; } = "DeliveryDriver"; // DeliveryDriver (por enquanto só temos um, mas poderíamos usar um enumerator pra outros profiles, exemplo accountant, etc)
@@ -20,6 +21,10 @@ public class UserProfile
     public DateTime UpdatedAt { get; set; }
 
     private List<string> _errors = new();
+
+    public UserProfile()
+    {        
+    }
 
     public UserProfile(User user, string name, string businessIdentificationNumber, DateTime? dateOfBirth, string? driverLicenseNumber, IEnumerable<string> driverLicenseTypes, string? driverLicenseImageUrl)
     {
@@ -120,8 +125,10 @@ public class UserProfile
         return Regex.Replace(maskedValue, "[^a-zA-Z0-9]", "");
     }
 
-    public IResult Validate()
+    public IResult<UserProfile> Validate()
     {
-        return _errors.Any() ? Result.Fail(_errors) : Result.Success();
+        return _errors.Any() 
+            ? Result<UserProfile>.Fail(_errors, this) 
+            : Result<UserProfile>.Success(this);
     }
 }

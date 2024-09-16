@@ -1,8 +1,7 @@
-namespace Domain.Common.Interfaces
+namespace Domain.Common.Interfaces;
+public interface IResult<T>
 {
-    public interface IResult
-    {
-        bool IsSuccess { get; }
-        IEnumerable<string> Errors { get; }
-    }
+    bool IsSuccess { get; }
+    IEnumerable<string> Errors { get; }
+    T? Entity { get; }
 }
