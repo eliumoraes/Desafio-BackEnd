@@ -50,12 +50,16 @@ var app = builder.Build();
 // Configurações do swagger pra development
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    //Alterações específicas de env
+    Console.WriteLine("Estou considerando DEV quando roda fora do Docker");
 }
 
+//Mantendo swagger pra todos os ambientes
+app.UseSwagger();
+app.UseSwaggerUI();
+
 // Middlewares padrão
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
 
