@@ -61,7 +61,7 @@ public class UserProfile
 
         if(!CnpjValidation.Validate(businessIdentificationNumber))
         {
-            _errors.Add("Invalid Business Identification Number");
+            _errors.Add("Invalid Business Identification Number, try using 'https://www.4devs.com.br/gerador_de_cnpj'");
             return;
         }
 
@@ -89,7 +89,7 @@ public class UserProfile
 
         if(!CnhValidation.Validate(driverLicenseNumber))
         {
-            _errors.Add("Invalid Driver License Number");
+            _errors.Add("Invalid Driver License Number, try using 'https://www.4devs.com.br/gerador_de_cnh'");
             return;
         }
 

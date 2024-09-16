@@ -16,9 +16,19 @@ public class MinioImageUploader : IImageUploader
     public MinioImageUploader(IConfiguration configuration)
     {
         _bucketName = configuration["MinioSettings:BucketName"];
+
+        var endpoint = configuration["MinioSettings:Endpoint"];
+        var accessKey = configuration["MinioSettings:AccessKey"];
+        var secretKey = configuration["MinioSettings:SecretKey"];
+
+        if (string.IsNullOrEmpty(endpoint) || string.IsNullOrEmpty(accessKey) || string.IsNullOrEmpty(secretKey))
+        {
+            throw new MinioException("MinIO credentials are not properly set.");
+        }
+
         _minioClient = new MinioClient()
-            .WithEndpoint(configuration["MinioSettings:Endpoint"])
-            .WithCredentials(configuration["MinioSettings.AccessKey"], configuration["MinioSettings:SecretKey"])
+            .WithEndpoint(endpoint)
+            .WithCredentials(accessKey, secretKey)
             .Build();
     }
     public async Task<IResult<string>> UploadImageAsync(IFormFile image)
@@ -56,7 +66,28 @@ public class MinioImageUploader : IImageUploader
         {
 
             return Result<string>.Fail(
-                new List<string> { $"Minio error: {ex.Message}"}
+                new List<string> { $"Minio error: {ex.Message}" }
+            );
+        }
+    }
+
+    public async Task<IResult<string>> DeleteImageAsync(string imageUrl)
+    {
+         try
+        {
+            var fileName = imageUrl.Replace($"{_bucketName}/", "");  // Remover o prefixo do bucket para obter o nome do arquivo.
+
+            await _minioClient.RemoveObjectAsync(new RemoveObjectArgs()
+                .WithBucket(_bucketName)
+                .WithObject(fileName)
+            );
+
+            return Result<string>.Success(imageUrl);
+        }
+        catch (MinioException ex)
+        {
+            return Result<string>.Fail(
+                new List<string> { $"Minio error: {ex.Message}" }
             );
         }
     }

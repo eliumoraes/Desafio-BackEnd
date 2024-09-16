@@ -13,7 +13,14 @@ var builder = WebApplication.CreateBuilder(args);
 // Serviços essenciais
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    // Caminho do arquivo XML de documentação
+    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    // XML no Swagger
+    options.IncludeXmlComments(xmlPath);
+});
 
 // Configs do banco de dados
 var postgresConnectionString = builder.Configuration.GetConnectionString("PostgresConnectionString");

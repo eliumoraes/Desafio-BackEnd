@@ -16,7 +16,7 @@ public class RegisterDeliveryDriverRequest : IRequest<IResult<RegisterDeliveryDr
     public string DriverLicenseNumber { get; set; }
     public List<string> DriverLicenseTypes { get; set; }
     public string Name { get; set; }
-    public DateTime BirthDate { get; set; }
+    public string BirthDate { get; set; }
     public IFormFile? DriverLicenseImage { get; set; }
     
 }

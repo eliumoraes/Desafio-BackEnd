@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using System.Threading.Tasks;
 using Application.Interfaces;
 using Domain.Common.Implementations;
+using System.Globalization;
 
 namespace Application.Commands.Users.RegisterDeliveryDriver;
 
@@ -30,12 +31,11 @@ public class RegisterDeliveryDriverRequestHandler : IRequestHandler<RegisterDeli
 
     public async Task<IResult<RegisterDeliveryDriverResponse>> Handle(RegisterDeliveryDriverRequest request, CancellationToken cancellationToken)
     {
+        var errors = new List<string>();
         var existingUser = await _userRepository.GetByUsernameAsync(request.Username);
         if (existingUser != null)
         {
-            return Result<RegisterDeliveryDriverResponse>.Fail(
-                new List<string> { "username already exists" }
-            );
+            errors.Add("Username already exists");
         }
 
         var passwordHash = _passwordHassher.HashPassword(request.Password);
@@ -44,68 +44,80 @@ public class RegisterDeliveryDriverRequestHandler : IRequestHandler<RegisterDeli
         var userValidationResult = user.Validate();
         if (!userValidationResult.IsSuccess)
         {
-            return Result<RegisterDeliveryDriverResponse>.Fail(
-                userValidationResult.Errors.ToList()
-            );
+            errors.AddRange(userValidationResult.Errors);
         }
 
         var existingProfile = await _userProfileRepository.GetByBusinesseIdentificationNumberOrDriverLicenseAsync(request.BusinessIdentificationNumber, request.DriverLicenseNumber);
         if (existingProfile != null)
         {
-            return Result<RegisterDeliveryDriverResponse>.Fail(
-                new List<string> { "A profile with the same CNPJ or CNH already exists" }
-            );
+            errors.Add("A profile with the same CNPJ or CNH already exists");
         }
 
-        string driverLicenseImageUrl = null;
+        string? driverLicenseImageUrl = null;
         if (request.DriverLicenseImage != null)
         {
             var imageUploadResult = await _imageUploader.UploadImageAsync(request.DriverLicenseImage);
-            if(!imageUploadResult.IsSuccess)
+            if (!imageUploadResult.IsSuccess)
             {
-                return Result<RegisterDeliveryDriverResponse>.Fail(
-                    imageUploadResult.Errors.ToList()
-                );
+                errors.AddRange(imageUploadResult.Errors);
             }
             driverLicenseImageUrl = imageUploadResult.Entity;
+        }
+
+        if (!DateTime.TryParseExact(request.BirthDate, "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var birthDate))
+        {
+            errors.Add("Invalid DateBirth format. Please use dd/MM/yyyy.");
         }
 
         var userProfile = new UserProfile(
             user,
             request.Name,
             request.BusinessIdentificationNumber,
-            request.BirthDate,
+            DateTime.SpecifyKind(birthDate, DateTimeKind.Utc),
             request.DriverLicenseNumber,
             request.DriverLicenseTypes,
             driverLicenseImageUrl
         );
 
         var profileValidationResult = userProfile.Validate();
-        if(!profileValidationResult.IsSuccess)
+        if (!profileValidationResult.IsSuccess)
         {
-            return Result<RegisterDeliveryDriverResponse>.Fail(
-                profileValidationResult.Errors.ToList()
-            );
+            errors.AddRange(profileValidationResult.Errors);
+        }        
+
+        // Entity, application or service errors
+        if (errors.Any())
+        {
+            if (driverLicenseImageUrl != null)
+                await _imageUploader.DeleteImageAsync(driverLicenseImageUrl);
+            return Result<RegisterDeliveryDriverResponse>.Fail(errors);
         }
 
         var userAdded = await _userRepository.AddAsync(user);
-        if(!userAdded){
-            return Result<RegisterDeliveryDriverResponse>.Fail(
-                new List<string> { "Failed to add user "}
-            );
+        if (!userAdded)
+        {
+            errors.Add("Failed to add user ");
         }
 
         var profileAdded = await _userProfileRepository.AddAsync(userProfile);
-        if(!profileAdded){
-            return Result<RegisterDeliveryDriverResponse>.Fail(
-                new List<string> { "Failed to add user profile"}
-            );
+        if (!profileAdded)
+        {            
+            errors.Add("Failed to add user profile");
+        }
+
+        // Repository errors
+        if (errors.Any())
+        {
+            if (driverLicenseImageUrl != null)
+                await _imageUploader.DeleteImageAsync(driverLicenseImageUrl);
+            return Result<RegisterDeliveryDriverResponse>.Fail(errors);
         }
 
         var response = new RegisterDeliveryDriverResponse
         {
             UserId = user.Id,
-            Username = user.Username
+            Username = user.Username,
+            UserImageUrl = userProfile.DriverLicenseImageUrl
         };
 
         return Result<RegisterDeliveryDriverResponse>.Success(response);

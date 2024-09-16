@@ -32,8 +32,7 @@ public class RegisterDeliveryDriverRequestValidator : AbstractValidator<Register
 
         // Validação da Data de Nascimento (motorista deve ter no mínimo 18 anos)
         RuleFor(x => x.BirthDate)
-            .NotEmpty().WithMessage("BirthDate is required.")
-            .Must(BeAtLeast18).WithMessage("You must be at least 18 years old.");
+            .NotEmpty().WithMessage("BirthDate is required.");            
 
         // Validação do tipo e tamanho da imagem da CNH
         RuleFor(x => x.DriverLicenseImage)
@@ -44,7 +43,6 @@ public class RegisterDeliveryDriverRequestValidator : AbstractValidator<Register
     }
 
     // Funções utilitárias de validação
-    private bool BeAtLeast18(DateTime birthDate) => birthDate <= DateTime.Today.AddYears(-18);
     private bool BeValidImageType(IFormFile file) => new[] { "image/png", "image/bmp" }.Contains(file.ContentType);
     private bool BeValidImageSize(IFormFile file) => file.Length <= (5 * 1024 * 1024); // 5 MB
 }
