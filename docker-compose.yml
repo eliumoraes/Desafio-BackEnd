@@ -40,6 +40,10 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://0.0.0.0:80
+      - Jwt__Key=FooCompanyAPIChallengeSuperSecretKey
+      - Jwt__Issuer=FooCompanyAPI
+      - Jwt__Audience=FooCompanyAudience
+      - Jwt__ExpiresInMinutes=120
     depends_on:
       rabbitmq:
         condition: service_started
