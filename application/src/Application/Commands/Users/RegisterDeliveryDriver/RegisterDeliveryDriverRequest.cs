@@ -4,6 +4,7 @@ using MediatR;
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Http;
+using System.Text.Json.Serialization;
 
 
 namespace Application.Commands.Users.RegisterDeliveryDriver;
@@ -17,6 +18,7 @@ public class RegisterDeliveryDriverRequest : IRequest<IResult<RegisterDeliveryDr
     public List<string> DriverLicenseTypes { get; set; }
     public string Name { get; set; }
     public string BirthDate { get; set; }
+    [JsonIgnore]
     public IFormFile? DriverLicenseImage { get; set; }
     
 }

@@ -1,9 +1,13 @@
 namespace Application.Interfaces;
+
+using Domain.Common.Interfaces;
 using Domain.User;
 
 public interface IUserProfileRepository
 {
-    Task<UserProfile?> GetByBusinesseIdentificationNumberOrDriverLicenseAsync(string? businessIdentificationNumber, string? driverLicenseNumber);
-    Task<bool> AddAsync(UserProfile userProfile);
+    Task<IResult<UserProfile?>> GetByBusinesseIdentificationNumberOrDriverLicenseAsync(string? businessIdentificationNumber, string? driverLicenseNumber);
+    Task<IResult<UserProfile?>> GetByUserIdAsync(Guid userId);
+    Task<IResult<bool>> AddAsync(UserProfile userProfile);
+    Task<IResult<bool>> UpdateAsync(UserProfile userProfile);
 
 }

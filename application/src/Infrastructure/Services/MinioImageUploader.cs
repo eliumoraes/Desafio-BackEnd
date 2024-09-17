@@ -35,7 +35,7 @@ public class MinioImageUploader : IImageUploader
     {
         try
         {
-            var fileName = $"{Guid.NewGuid()}_{image.FileName}";
+            var fileName = $"{Guid.NewGuid()}_{image.FileName}".Trim();
 
             bool bucketExists = await _minioClient.BucketExistsAsync(
                 new BucketExistsArgs().WithBucket(_bucketName)
@@ -64,7 +64,7 @@ public class MinioImageUploader : IImageUploader
         }
         catch (MinioException ex)
         {
-
+            //Log error
             return Result<string>.Fail(
                 new List<string> { $"Minio error: {ex.Message}" }
             );

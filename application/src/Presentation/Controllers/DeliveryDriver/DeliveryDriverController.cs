@@ -2,7 +2,6 @@ using Application.Commands.Users.RegisterDeliveryDriver;
 using Domain.Common.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
 
 namespace Presentation.Controllers.DeliveryDriver;
 
@@ -20,15 +19,16 @@ public class DeliveryDriverController : ControllerBase
     /// <summary>
     /// Registers a new delivery driver.
     /// </summary>
-    /// <param name="request">Driver details for registration.</param>
+    /// <param name="request">Driver details for registration.</param>    
     /// <returns>Created delivery driver details or error.</returns>
-    [HttpPost("register")]
+    [HttpPost("Register")]
+    [Consumes("application/json")]
     [ProducesResponseType(typeof(RegisterDeliveryDriverResponse), 201)]
     [ProducesResponseType(typeof(IEnumerable<string>), 400)]
-    public async Task<IActionResult> RegisterDeliveryDriver([FromForm] RegisterDeliveryDriverRequest request)
+    public async Task<IActionResult> RegisterDeliveryDriver([FromBody] RegisterDeliveryDriverRequest request)
     {
         IResult<RegisterDeliveryDriverResponse> result = await _mediator.Send(request);
-        
+
         if (!result.IsSuccess)
         {
             return BadRequest(result.Errors);

@@ -1,9 +1,10 @@
+using Domain.Common.Interfaces;
 using Domain.User;
 namespace Application.Interfaces;
 
 public interface IUserRepository
 {
-    Task<User?> GetByUsernameAsync(string username);
-    Task<User?> GetByIdAsync(Guid id);
-    Task<bool> AddAsync(User user);
+    Task<IResult<User?>> GetByUsernameAsync(string username);
+    Task<IResult<User?>> GetByIdAsync(Guid id);
+    Task<IResult<bool>> AddAsync(User user);
 }

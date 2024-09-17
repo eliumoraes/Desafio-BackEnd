@@ -6,6 +6,7 @@ using Application.Services;
 using Microsoft.EntityFrameworkCore;
 using Application.Commands.Users.RegisterDeliveryDriver;
 using FluentValidation;
+using Application.Commands.Users.UploadDriverLicenseImage;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -32,11 +33,15 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Mediator
 builder.Services.AddMediatR(
     config => 
-    config.RegisterServicesFromAssemblyContaining<RegisterDeliveryDriverRequestHandler>()
+    {
+        config.RegisterServicesFromAssemblyContaining<RegisterDeliveryDriverRequestHandler>();
+        config.RegisterServicesFromAssemblyContaining<UploadDriverLicenseImageRequestHandler>();
+    }
 );
 
 // Fluent validaation
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterDeliveryDriverRequestValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<UploadDriverLicenseImageValidator>();
 
 // Injeções, repositórios, services, etc
 builder.Services.AddScoped<IUserRepository, UserRepository>();  // Repositório de usuário

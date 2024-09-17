@@ -15,7 +15,7 @@ public class Result<T> : IResult<T>
         Entity = entity;
     }
 
-    public static Result<T> Success(T entity)
+    public static Result<T> Success(T? entity)
     {
         return new Result<T>(true, new List<string>(), entity);
     }
