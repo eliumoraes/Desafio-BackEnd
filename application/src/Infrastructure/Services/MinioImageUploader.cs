@@ -13,21 +13,22 @@ public class MinioImageUploader : IImageUploader
 {
     private readonly IMinioClient _minioClient;
     private readonly string _bucketName;
+    private readonly string _endpoint;
     public MinioImageUploader(IConfiguration configuration)
     {
         _bucketName = configuration["MinioSettings:BucketName"];
 
-        var endpoint = configuration["MinioSettings:Endpoint"];
+        _endpoint = configuration["MinioSettings:Endpoint"];
         var accessKey = configuration["MinioSettings:AccessKey"];
         var secretKey = configuration["MinioSettings:SecretKey"];
 
-        if (string.IsNullOrEmpty(endpoint) || string.IsNullOrEmpty(accessKey) || string.IsNullOrEmpty(secretKey))
+        if (string.IsNullOrEmpty(_endpoint) || string.IsNullOrEmpty(accessKey) || string.IsNullOrEmpty(secretKey))
         {
             throw new MinioException("MinIO credentials are not properly set.");
         }
 
         _minioClient = new MinioClient()
-            .WithEndpoint(endpoint)
+            .WithEndpoint(_endpoint)
             .WithCredentials(accessKey, secretKey)
             .Build();
     }
@@ -59,8 +60,8 @@ public class MinioImageUploader : IImageUploader
                 );
             }
 
-            var imageUrl = $"{_bucketName}/{fileName}";
-            return Result<string>.Success(imageUrl);
+            var imageLocation = $"{_bucketName}/{fileName}";
+            return Result<string>.Success(imageLocation);
         }
         catch (MinioException ex)
         {
@@ -71,18 +72,18 @@ public class MinioImageUploader : IImageUploader
         }
     }
 
-    public async Task<IResult<string>> DeleteImageAsync(string imageUrl)
+    public async Task<IResult<string>> DeleteImageAsync(string imageLocation)
     {
          try
         {
-            var fileName = imageUrl.Replace($"{_bucketName}/", "");  // Remover o prefixo do bucket para obter o nome do arquivo.
+            var fileName = imageLocation.Substring(imageLocation.LastIndexOf('/') + 1);
 
             await _minioClient.RemoveObjectAsync(new RemoveObjectArgs()
                 .WithBucket(_bucketName)
                 .WithObject(fileName)
             );
 
-            return Result<string>.Success(imageUrl);
+            return Result<string>.Success(imageLocation);
         }
         catch (MinioException ex)
         {

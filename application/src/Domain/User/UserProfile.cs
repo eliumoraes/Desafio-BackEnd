@@ -16,7 +16,7 @@ public class UserProfile
     public DateTime? DateOfBirth { get; set; }
     public string? DriverLicenseNumber { get; set; }
     public HashSet<DriverLicenseType>? DriverLicenseType { get; set; }
-    public string? DriverLicenseImageUrl { get; set; }
+    public string? DriverLicenseImageLocation { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 
@@ -26,7 +26,7 @@ public class UserProfile
     {        
     }
 
-    public UserProfile(User user, string name, string businessIdentificationNumber, DateTime? dateOfBirth, string? driverLicenseNumber, IEnumerable<string> driverLicenseTypes, string? driverLicenseImageUrl)
+    public UserProfile(User user, string name, string businessIdentificationNumber, DateTime? dateOfBirth, string? driverLicenseNumber, IEnumerable<string> driverLicenseTypes, string? driverLicenseImageLocation = null)
     {
         UserId = user.Id;
         User = user;
@@ -35,7 +35,7 @@ public class UserProfile
         SetDateOfBirth(dateOfBirth);
         SetDriverLicenseNumber(driverLicenseNumber);
         SetDriverLicenseType(driverLicenseTypes);
-        DriverLicenseImageUrl = driverLicenseImageUrl;
+        DriverLicenseImageLocation = driverLicenseImageLocation;
         CreatedAt = DateTime.UtcNow;
         UpdatedAt = DateTime.UtcNow;
     }

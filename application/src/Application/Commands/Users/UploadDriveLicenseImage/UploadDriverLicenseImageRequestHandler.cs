@@ -21,37 +21,54 @@ public class UploadDriverLicenseImageRequestHandler : IRequestHandler<UploadDriv
     {
         List<string> errors = new();
 
+        if (!Guid.TryParse(request.UserId, out var userId))
+        {
+            errors.Add("Invalid UserId format.");
+        }
+
         var uploadResult = await _imageUploader.UploadImageAsync(request.DriverLicenseImage);
         if (!uploadResult.IsSuccess)
         {
             errors.AddRange(uploadResult.Errors);
         }
 
-        IResult<UserProfile?> getUserProfileResult = await _userProfileRepository.GetByUserIdAsync(request.UserId);
-        if(!getUserProfileResult.IsSuccess)
+        IResult<UserProfile?> getUserProfileResult = await _userProfileRepository.GetByUserIdAsync(userId);
+        if (!getUserProfileResult.IsSuccess)
         {
             errors.AddRange(getUserProfileResult.Errors);
         }
 
-        if(errors.Any()){
+        UserProfile updatedUserProfile = getUserProfileResult.Entity;
+
+        if (!string.IsNullOrEmpty(updatedUserProfile.DriverLicenseImageLocation))
+        {
+            var deleteOldImageResult = await _imageUploader.DeleteImageAsync(updatedUserProfile.DriverLicenseImageLocation);
+            if (!deleteOldImageResult.IsSuccess)
+            {
+                errors.AddRange(deleteOldImageResult.Errors);
+            }
+        }
+
+        if (errors.Any())
+        {
             return Result<UploadDriverLicenseImageResponse>.Fail(errors);
         }
 
-        UserProfile updatedUserProfile = getUserProfileResult.Entity;
-        updatedUserProfile.DriverLicenseImageUrl = uploadResult.Entity;
+        updatedUserProfile.DriverLicenseImageLocation = uploadResult.Entity;
 
         IResult<bool> updateUserProfileResult = await _userProfileRepository.UpdateAsync(updatedUserProfile);
 
-        if(!updateUserProfileResult.IsSuccess){
+        if (!updateUserProfileResult.IsSuccess)
+        {
             return Result<UploadDriverLicenseImageResponse>.Fail(
-                new List<string> {"Error while updatding the user profile"}
+                new List<string> { "Error while updatding the user profile" }
             );
         }
 
         var response = new UploadDriverLicenseImageResponse
         {
-            UserId = request.UserId,
-            ImageUrl = uploadResult.Entity
+            UserId = updatedUserProfile.UserId,
+            ImageLocation = uploadResult.Entity
         };
 
         return Result<UploadDriverLicenseImageResponse>.Success(response);
