@@ -60,6 +60,11 @@ public class UserAuthenticationRequestHandler : IRequestHandler<UserAuthenticati
             errors.AddRange(user.Errors);
         }
 
+        if (errors.Any())
+        {
+            return Result<UserAuthenticationResponse>.Fail(errors);
+        }
+
         bool userPasswordMatchResult = _passwordHasher.VerifyPassword(request.Password, user.Entity.PasswordHash);
 
         if (!userPasswordMatchResult)

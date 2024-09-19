@@ -1,3 +1,4 @@
+using Domain.Motorcycle;
 using Domain.User;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -11,6 +12,7 @@ public class AppDbContext : DbContext
     //DbSets para entidades do Domain
     public DbSet<User> Users { get; set; }
     public DbSet<UserProfile> UserProfiles { get; set; }
+    public DbSet<Motorcycle> Motorcycles {get; set;}
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -62,7 +64,16 @@ public class AppDbContext : DbContext
             c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
             c => new HashSet<DriverLicenseType>(c)
         )
-    );
+        );
+        #endregion
+
+        #region Motorcycle
+        modelBuilder.Entity<Motorcycle>()
+            .HasKey(m => m.MotorcyleId);
+
+        modelBuilder.Entity<Motorcycle>()
+            .HasIndex(m => m.LicensePlate)
+            .IsUnique();
         #endregion
     }
 
