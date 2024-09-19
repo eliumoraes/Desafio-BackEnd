@@ -1,3 +1,13 @@
+# Rodar o projeto:
+- Baixar a branch localmente
+- Abrir o diretório que contém o docker-compose
+- Rodar o comando:
+  ```
+  docker compose up --build
+  ```
+- Abrir a url: http://localhost:5000/swagger/index.html
+
+
 # Desafio backend FooCompany.
 Seja muito bem-vindo ao desafio backend da FooCompany, obrigado pelo interesse em fazer parte do nosso time e ajudar a melhorar a vida de milhares de pessoas.
 
