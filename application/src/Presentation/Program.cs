@@ -10,6 +10,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Application.Commands.Users.UserAuthentication;
+using Application.Commands.Motorcycles.RegisterMotorcycle;
+using Infrastructure.Messagin;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -78,29 +80,36 @@ var postgresConnectionString = builder.Configuration.GetConnectionString("Postgr
 Console.WriteLine($"Connection String: {postgresConnectionString}");
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(postgresConnectionString));
+    options.UseNpgsql(postgresConnectionString));   
+
+// RabbitMqEventConsumer
+builder.Services.AddSingleton<RabbitMqEventConsumer>();
 
 // Mediator
 builder.Services.AddMediatR(
     config =>
     {
-        config.RegisterServicesFromAssemblyContaining<RegisterDeliveryDriverRequestHandler>();
-        config.RegisterServicesFromAssemblyContaining<UploadDriverLicenseImageRequestHandler>();
         config.RegisterServicesFromAssemblyContaining<UserAuthenticationRequestHandler>();
+        config.RegisterServicesFromAssemblyContaining<RegisterDeliveryDriverRequestHandler>();
+        config.RegisterServicesFromAssemblyContaining<UploadDriverLicenseImageRequestHandler>();        
+        config.RegisterServicesFromAssemblyContaining<RegisterMotorcycleRequestHandler>();
     }
 );
 
 // Fluent validaation
+builder.Services.AddValidatorsFromAssemblyContaining<UserAuthenticationRequestValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterDeliveryDriverRequestValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<UploadDriverLicenseImageValidator>();
-builder.Services.AddValidatorsFromAssemblyContaining<UserAuthenticationRequestValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<RegisterMotorcycleRequestValidator>();
 
 // Injeções, repositórios, services, etc
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>(); // Implementação do token JWT
+builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();  // Serviço de hash de senhas
+builder.Services.AddScoped<IEventPublisher, RabbitMqEventPublisher>();  // Publicador de eventos
 builder.Services.AddScoped<IUserRepository, UserRepository>();  // Repositório de usuário
 builder.Services.AddScoped<IUserProfileRepository, UserProfileRespository>(); // Repositório do profile
 builder.Services.AddScoped<IImageUploader, MinioImageUploader>();  // MinIO para salvar imagens
-builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();  // Serviço de hash de senhas
+builder.Services.AddScoped<IMotorcycleRepository, MotorcycleRepository>(); // Repositório de motos
 
 // salvando builder
 var app = builder.Build();
@@ -121,4 +130,11 @@ app.UseSwaggerUI();
 app.UseAuthorization();
 app.MapControllers();
 
+//
+var rabbitMqConsumer = app.Services.GetRequiredService<RabbitMqEventConsumer>();
+rabbitMqConsumer.StartConsuming();
+
+var teste = "eliu";
+
 app.Run();
+
